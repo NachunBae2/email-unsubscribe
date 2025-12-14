@@ -69,18 +69,20 @@ export async function GET(request: NextRequest) {
 
   if (uuid) {
     // 백그라운드로 Supabase에 구독 취소 기록 저장
-    supabase
-      .from('unsubscribe_logs')
-      .insert({
-        subscriber_uuid: uuid,
-        campaign_id: campaign || null,
-        list_id: list || null,
-        unsubscribed_at: new Date().toISOString(),
-        ip_address: request.headers.get('x-forwarded-for') || 'unknown',
-        user_agent: request.headers.get('user-agent') || 'unknown'
-      })
-      .then(() => {})
-      .catch(() => {})
+    try {
+      await supabase
+        .from('unsubscribe_logs')
+        .insert({
+          subscriber_uuid: uuid,
+          campaign_id: campaign || null,
+          list_id: list || null,
+          unsubscribed_at: new Date().toISOString(),
+          ip_address: request.headers.get('x-forwarded-for') || 'unknown',
+          user_agent: request.headers.get('user-agent') || 'unknown'
+        })
+    } catch (e) {
+      // ignore
+    }
   }
 
   // 단순 HTML만 반환 - Vercel 페이지 없이 바로 표시
